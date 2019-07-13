@@ -11,7 +11,7 @@ import torchvision
 from torchvision import transforms
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
-from dataset import BBoxDataset
+from dataset import BBoxDataset, bbox_collate_fn
 from trainer import Trainer
 
 
@@ -45,17 +45,6 @@ def prepare_dataset():
     ])
 
     return images, bboxes, labels
-
-
-def bbox_collate_fn(batch):
-    images = []
-    targets = []
-    for sample in batch:
-        image, target = sample
-        images.append(image)
-        targets.append(target)
-    images = torch.stack(images, dim=0)
-    return images, targets
 
 
 if __name__ == '__main__':

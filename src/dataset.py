@@ -1,4 +1,5 @@
 from PIL import Image
+import torch
 from torch.utils.data import Dataset
 
 
@@ -38,3 +39,14 @@ class BBoxDataset(Dataset):
         label = self.labels[idx]
         target = {'boxes': bbox.float(), 'labels': label.int()}
         return img, target
+
+
+def bbox_collate_fn(batch):
+    images = []
+    targets = []
+    for sample in batch:
+        image, target = sample
+        images.append(image)
+        targets.append(target)
+    images = torch.stack(images, dim=0)
+    return images, targets
