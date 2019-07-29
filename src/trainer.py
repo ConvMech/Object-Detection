@@ -16,7 +16,6 @@ class Trainer:
         self.device = 'cpu'
         self.model = model.to(self.device)
         self.optimizer = optimizer
-        self.criterion = criterion
 
     def epoch_train(self, train_loader):
         self.model.train()
@@ -40,13 +39,13 @@ class Trainer:
         return epoch_loss / len(train_loader)
 
     def epoch_eval(self, eval_loader):
-        self.model.eval()
+        self.model.train()
         epoch_loss = 0
 
         for i, (inputs, targets) in enumerate(eval_loader):
             inputs = inputs.to(self.device)
 
-            outputs = self.model(inputs)
+            outputs = self.model(inputs, targets)
             loss_classifier = outputs['loss_classifier']
             loss_box_reg = outputs['loss_box_reg']
             loss_objectness = outputs['loss_objectness']

@@ -16,8 +16,7 @@ from trainer import Trainer
 
 
 def prepare_dataset():
-    df = pd.read_csv('../annotation.csv')
-
+    df = pd.read_csv('../annotation.csv').iloc[:10]
     class_to_idx = {label: idx for idx, label in enumerate(df['label'].unique())}
     df['filename'] = df['filename'].apply(lambda x: os.path.join('..', x))
     images = df['filename'].tolist()
@@ -26,7 +25,7 @@ def prepare_dataset():
     bboxes, labels = [], []
     for img in images:
         rows = groupby_image.get_group(img)
-        # Bouding Box
+
         x_min = rows['x_min'].values
         y_min = rows['y_min'].values
         x_max = rows['x_max'].values
@@ -34,15 +33,10 @@ def prepare_dataset():
         bbox = np.stack([x_min, y_min, x_max, y_max]).reshape(-1, 4)
         bbox = torch.from_numpy(bbox)
         bboxes.append(bbox)
-        # Labels
+
         label = rows['label'].map(class_to_idx).values
         label = torch.from_numpy(label).view(-1)
         labels.append(label)
-
-    transform = transforms.Compose([
-        transforms.Resize((800, 800)),
-        transforms.ToTensor(),
-    ])
 
     return images, bboxes, labels
 
@@ -51,6 +45,7 @@ if __name__ == '__main__':
     images, bboxes, labels = prepare_dataset()
     train_images, valid_images, train_bboxes, valid_bboxes, \
         train_labels, valid_labels = train_test_split(images, bboxes, labels)
+
     transform = transforms.Compose([
         transforms.Resize((800, 800)),
         transforms.ToTensor(),
@@ -60,7 +55,6 @@ if __name__ == '__main__':
 
     train_loader = DataLoader(dtrain, batch_size=3, drop_last=True,
                               collate_fn=bbox_collate_fn)
-
     valid_loader = DataLoader(dvalid, batch_size=3,
                               collate_fn=bbox_collate_fn)
 
@@ -82,3 +76,6 @@ if __name__ == '__main__':
         
         print(f'EPOCH: [{epoch}/{num_epochs}]')
         print(f'TRAIN_LOSS: {train_loss}, VALID_LOSS: {valid_loss}')
+
+    weights = trainer.model.state_dict()
+    torch.save(weights, 'model.pth')
